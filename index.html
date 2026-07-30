@@ -1,1 +1,1381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Field Rock Logger</title>
+<style>
+:root{
+  --paper:#efe9d8;
+  --paper2:#e6dfc7;
+  --card:#f7f3e6;
+  --ink:#211d15;
+  --ink-soft:#5c5642;
+  --ink-faint:#8c8468;
+  --accent:#c1440e;
+  --accent-dark:#8f3209;
+  --accent-ink:#fff7ee;
+  --line:#b8ac86;
+  --line-soft:#d8d0b4;
+  --ok:#3f6b3f;
+  --bad:#a3311a;
+  --mono:'SFMono-Regular','Consolas','Menlo','Liberation Mono',monospace;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  --radius:3px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--paper);
+  background-image:
+    linear-gradient(var(--line-soft) 1px, transparent 1px);
+  background-size: 100% 28px;
+  color:var(--ink);
+  font-family:var(--sans);
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+  padding-bottom:70px;
+}
+::selection{background:var(--accent);color:var(--accent-ink);}
+a{color:var(--accent-dark);}
 
+/* ---------- Header ---------- */
+header.app-head{
+  background:var(--ink);
+  color:var(--paper);
+  padding:14px 16px 12px;
+  position:sticky;
+  top:0;
+  z-index:50;
+  border-bottom:3px solid var(--accent);
+}
+.head-row{display:flex;align-items:center;gap:10px;}
+.compass{flex:0 0 auto;}
+.head-titles{flex:1 1 auto;min-width:0;}
+.app-title{
+  font-family:var(--mono);
+  font-weight:700;
+  letter-spacing:0.06em;
+  font-size:19px;
+  margin:0;
+  text-transform:uppercase;
+}
+.app-sub{
+  font-size:11px;
+  color:#c9c2a8;
+  margin:1px 0 0;
+  letter-spacing:0.04em;
+}
+.outcrop-badge{
+  font-family:var(--mono);
+  font-size:12px;
+  background:var(--accent);
+  color:var(--accent-ink);
+  padding:4px 8px;
+  border-radius:var(--radius);
+  white-space:nowrap;
+  font-weight:700;
+}
+
+/* ---------- Tab nav ---------- */
+nav.tabs{
+  display:flex;
+  overflow-x:auto;
+  background:#2a251c;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+}
+nav.tabs::-webkit-scrollbar{display:none;}
+nav.tabs button{
+  flex:0 0 auto;
+  background:transparent;
+  border:none;
+  color:#a89f82;
+  font-family:var(--mono);
+  font-size:11px;
+  letter-spacing:0.03em;
+  text-transform:uppercase;
+  padding:10px 12px;
+  cursor:pointer;
+  border-bottom:3px solid transparent;
+  white-space:nowrap;
+}
+nav.tabs button .num{color:var(--accent);margin-right:4px;font-weight:700;}
+nav.tabs button.active{
+  color:#fff;
+  border-bottom-color:var(--accent);
+  background:#332c20;
+}
+
+/* ---------- Layout ---------- */
+main{max-width:720px;margin:0 auto;padding:14px 12px 24px;}
+section.panel{display:none;}
+section.panel.active{display:block;animation:fade .15s ease;}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+
+.card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:16px;
+  margin-bottom:14px;
+  box-shadow:0 1px 0 rgba(0,0,0,0.04);
+}
+.card h2{
+  font-family:var(--mono);
+  font-size:13px;
+  text-transform:uppercase;
+  letter-spacing:0.07em;
+  color:var(--accent-dark);
+  margin:0 0 12px;
+  padding-bottom:8px;
+  border-bottom:2px solid var(--line);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.card h2 .ref{
+  font-size:10px;
+  color:var(--ink-faint);
+  text-transform:none;
+  letter-spacing:0;
+  font-weight:400;
+}
+.card p.hint{font-size:12px;color:var(--ink-soft);margin:-6px 0 12px;line-height:1.5;}
+
+.field{margin-bottom:12px;}
+.field label{
+  display:block;
+  font-family:var(--mono);
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:0.04em;
+  color:var(--ink-soft);
+  margin-bottom:4px;
+}
+.field .desc{font-size:11px;color:var(--ink-faint);margin-top:3px;}
+input[type=text],input[type=number],select,textarea{
+  width:100%;
+  font-family:var(--sans);
+  font-size:15px;
+  padding:10px 10px;
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  background:#fffdf7;
+  color:var(--ink);
+}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px;}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+
+button{font-family:var(--sans);cursor:pointer;}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  background:var(--ink);color:var(--paper);
+  border:none;border-radius:var(--radius);
+  padding:11px 16px;font-size:14px;font-weight:600;
+  min-height:44px;
+}
+.btn.primary{background:var(--accent);color:var(--accent-ink);}
+.btn.primary:active{background:var(--accent-dark);}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line);}
+.btn.danger{background:transparent;color:var(--bad);border:1px solid var(--bad);}
+.btn.block{width:100%;}
+.btn.sm{padding:7px 10px;font-size:12px;min-height:34px;}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+
+.chip-row{display:flex;flex-wrap:wrap;gap:6px;}
+.chip{
+  font-family:var(--mono);font-size:11px;
+  border:1px solid var(--line);border-radius:20px;
+  padding:5px 10px;background:#fff;color:var(--ink-soft);
+}
+
+/* joint set cards */
+.jset-card{
+  border:1px solid var(--line);
+  border-left:4px solid var(--accent);
+  border-radius:var(--radius);
+  padding:12px;margin-bottom:12px;background:#fffdf7;
+}
+.jset-card .jset-head{
+  display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;
+}
+.jset-card .jset-id{
+  font-family:var(--mono);font-weight:700;color:var(--accent-dark);font-size:14px;
+}
+.jset-summary{font-size:12px;color:var(--ink-soft);line-height:1.6;}
+.jset-summary b{color:var(--ink);}
+
+/* checkbox / radio list */
+.optlist{border:1px solid var(--line-soft);border-radius:var(--radius);overflow:hidden;}
+.optlist label{
+  display:flex;gap:8px;align-items:flex-start;
+  padding:9px 10px;font-size:12.5px;line-height:1.4;
+  border-bottom:1px solid var(--line-soft);
+  color:var(--ink);cursor:pointer;
+  font-family:var(--sans);text-transform:none;letter-spacing:0;
+}
+.optlist label:last-child{border-bottom:none;}
+.optlist label:active{background:#fff2e4;}
+.optlist input{margin-top:2px;flex:0 0 auto;}
+.optlist .tag{font-family:var(--mono);font-weight:700;color:var(--accent-dark);white-space:nowrap;}
+
+/* results box */
+.result-box{
+  background:var(--ink);color:var(--paper);
+  border-radius:var(--radius);padding:14px;margin-top:10px;
+  font-family:var(--mono);
+}
+.result-box .r-line{display:flex;justify-content:space-between;font-size:13px;padding:3px 0;}
+.result-box .r-line.total{
+  border-top:1px dashed #6b6350;margin-top:6px;padding-top:8px;
+  font-size:17px;font-weight:700;color:#ffce9c;
+}
+.formula{
+  font-family:var(--mono);font-size:14px;text-align:center;
+  background:#fff2e4;border:1px dashed var(--accent);border-radius:var(--radius);
+  padding:10px;margin-bottom:14px;color:var(--accent-dark);font-weight:700;
+}
+
+/* canvas areas */
+.canvas-wrap{
+  border:1px solid var(--line);border-radius:var(--radius);
+  overflow:hidden;background:#ddd;touch-action:none;position:relative;
+}
+canvas{display:block;width:100%;height:auto;touch-action:none;}
+.tool-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px;}
+.swatch{
+  width:30px;height:30px;border-radius:50%;border:2px solid #fff;
+  box-shadow:0 0 0 1px var(--line);cursor:pointer;padding:0;
+}
+.swatch.selected{box-shadow:0 0 0 2px var(--ink);}
+.meta-box{
+  font-family:var(--mono);font-size:11px;color:var(--ink-soft);
+  background:#fff;border:1px solid var(--line-soft);border-radius:var(--radius);
+  padding:8px 10px;margin-top:8px;white-space:pre-wrap;
+}
+
+/* footer bar */
+footer.savebar{
+  position:fixed;bottom:0;left:0;right:0;
+  background:var(--ink);border-top:2px solid var(--accent);
+  padding:10px 14px;z-index:50;
+}
+footer.savebar .inner{max-width:720px;margin:0 auto;display:flex;gap:10px;}
+.status-line{
+  font-family:var(--mono);font-size:11px;text-align:center;color:var(--ink-faint);
+  margin-top:10px;
+}
+.badge-ok{color:var(--ok);font-weight:700;}
+.badge-bad{color:var(--bad);font-weight:700;}
+
+.desc-preview{
+  font-family:var(--mono);font-size:13px;line-height:1.6;
+  background:#fff2e4;border:1px solid var(--accent);border-radius:var(--radius);
+  padding:10px;color:var(--accent-dark);word-break:break-word;
+}
+hr.tick{
+  border:none;border-top:1px solid var(--line);
+  background-image:repeating-linear-gradient(90deg,var(--line) 0 1px,transparent 1px 10px);
+  height:6px;margin:16px 0;
+}
+</style>
+</head>
+<body>
+
+<header class="app-head">
+  <div class="head-row">
+    <svg class="compass" width="30" height="30" viewBox="0 0 30 30">
+      <circle cx="15" cy="15" r="13" fill="none" stroke="#c9c2a8" stroke-width="1.5"/>
+      <path d="M15 4 L18 15 L15 26 L12 15 Z" fill="#c1440e"/>
+      <circle cx="15" cy="15" r="1.6" fill="#efe9d8"/>
+    </svg>
+    <div class="head-titles">
+      <p class="app-title">Field Rock Logger</p>
+      <p class="app-sub">Offline outcrop &amp; discontinuity survey</p>
+    </div>
+    <div class="outcrop-badge" id="headBadge">NO ID</div>
+  </div>
+</header>
+
+<nav class="tabs" id="tabNav">
+  <button data-tab="location" class="active"><span class="num">1</span>Location</button>
+  <button data-tab="description"><span class="num">2</span>Rock Desc.</button>
+  <button data-tab="joints"><span class="num">3</span>Joint Sets</button>
+  <button data-tab="photo"><span class="num">4</span>Photo</button>
+  <button data-tab="gsi"><span class="num">5</span>GSI</button>
+  <button data-tab="qsystem"><span class="num">6</span>Q-System</button>
+  <button data-tab="save"><span class="num">7</span>Save</button>
+</nav>
+
+<main id="mainArea"></main>
+
+<footer class="savebar">
+  <div class="inner">
+    <button class="btn ghost block" id="quickPrev">&larr; Back</button>
+    <button class="btn primary block" id="quickNext">Next &rarr;</button>
+  </div>
+</footer>
+
+<script>
+/* ======================= APPLICATION SCRIPT ======================= */
+
+/* ---------------------------------------------------------------------
+   REFERENCE DATA TABLES
+--------------------------------------------------------------------- */
+const STRENGTH_OPTS = [
+  {v:'', t:'-- select --'},
+  {v:'Extremely weak (0.6-1.0 MPa)', t:'Extremely weak (0.6-1.0 MPa)'},
+  {v:'Very weak (1-5 MPa)', t:'Very weak (1-5 MPa)'},
+  {v:'Weak (5-25 MPa)', t:'Weak (5-25 MPa)'},
+  {v:'Medium strong (25-50 MPa)', t:'Medium strong (25-50 MPa)'},
+  {v:'Strong (50-100 MPa)', t:'Strong (50-100 MPa)'},
+  {v:'Very strong (100-250 MPa)', t:'Very strong (100-250 MPa)'},
+  {v:'Extremely strong (>250 MPa)', t:'Extremely strong (>250 MPa)'}
+];
+const STRUCTURE_OPTS = [
+  {v:'', t:'-- select --'},
+  {v:'very thickly bedded (2-6m)', t:'Very thickly bedded (2-6m)'},
+  {v:'thickly bedded (600mm-2m)', t:'Thickly bedded (600mm-2m)'},
+  {v:'medium bedded (200-600mm)', t:'Medium bedded (200-600mm)'},
+  {v:'thinly bedded (60-200mm)', t:'Thinly bedded (60-200mm)'},
+  {v:'very thinly bedded (20-60mm)', t:'Very thinly bedded (20-60mm)'},
+  {v:'thickly laminated (6-20mm)', t:'Thickly laminated (6-20mm)'},
+  {v:'narrowly foliated (6-20mm)', t:'Narrowly foliated (6-20mm)'},
+  {v:'thinly laminated (<6mm)', t:'Thinly laminated (<6mm)'},
+  {v:'very narrowly foliated (<6mm)', t:'Very narrowly foliated (<6mm)'}
+];
+const TEXTURE_OPTS = [
+  {v:'', t:'(none)'},
+  {v:'porphyritic', t:'Porphyritic'},
+  {v:'crystalline', t:'Crystalline'},
+  {v:'cryptocrystalline', t:'Cryptocrystalline'},
+  {v:'amorphous', t:'Amorphous'},
+  {v:'glassy', t:'Glassy'}
+];
+const GRAIN_OPTS = [
+  {v:'', t:'(none)'},
+  {v:'fine grained', t:'Fine grained'},
+  {v:'medium grained', t:'Medium grained'},
+  {v:'coarse grained', t:'Coarse grained'}
+];
+
+/* spacing: label + representative spacing in metres (for Jv calc) */
+const SPACING_OPTS = [
+  {v:'', t:'-- select --', m:null},
+  {v:'Extremely wide >6m', t:'Extremely wide >6m', m:8},
+  {v:'Very wide 2-6m', t:'Very wide 2-6m', m:4},
+  {v:'Wide 600mm-2m', t:'Wide 600mm-2m', m:1.3},
+  {v:'Medium 200-600mm', t:'Medium 200-600mm', m:0.4},
+  {v:'Close 60-200mm', t:'Close 60-200mm', m:0.13},
+  {v:'Very close 20-60mm', t:'Very close 20-60mm', m:0.04},
+  {v:'Extremely close <20mm', t:'Extremely close <20mm', m:0.01}
+];
+const PERSISTENCE_OPTS = ['', 'Very high >20m','High 10-20m','Medium 3-10m','Low 1-3m','Very low <1m','Not seen'];
+const TERMINATION_OPTS = ['', 'Outside exposure','Within rock','Against discontinuity'];
+const APERTURE_OPTS = ['', 'Extremely wide >1m','Very wide 0.1-1m','Wide 0.01-0.1m','Moderately wide 2.5-10mm','Open 0.5-2.5mm','Partly open 0.25-0.5mm','Tight 0.1-0.25mm','Very tight <0.1mm'];
+const SEEPAGE_OPTS = ['', 'Dry','Moisture on rock surface','Dripping water','Small flow 0.05-0.5 L/s','Medium flow 0.5-5.0 L/s','Large flow >5 L/s'];
+
+const JN_OPTS = [
+  {v:'', t:'-- select --', n:null},
+  {v:'Massive, no or few joints', t:'Massive, no or few joints (Jn 0.5-1, use 1)', n:1},
+  {v:'One joint set', t:'One joint set (Jn 2)', n:2},
+  {v:'One joint set plus random joints', t:'One joint set plus random joints (Jn 3)', n:3},
+  {v:'Two joint sets', t:'Two joint sets (Jn 4)', n:4},
+  {v:'Two joint sets plus random joints', t:'Two joint sets plus random joints (Jn 6)', n:6},
+  {v:'Three joint sets', t:'Three joint sets (Jn 9)', n:9},
+  {v:'Three joint sets plus random joints', t:'Three joint sets plus random joints (Jn 12)', n:12},
+  {v:'Four or more joint sets, random, heavily jointed sugar cube etc', t:'Four or more joint sets, random, heavily jointed "sugar cube" etc (Jn 15)', n:15},
+  {v:'Crushed rock, earth like', t:'Crushed rock, earth like (Jn 20)', n:20}
+];
+const JR_OPTS = [
+  {v:'', t:'-- select --', n:null},
+  {v:'Discontinuous joints', t:'Discontinuous joints (Jr 4)', n:4},
+  {v:'Rough or irregular, undulating', t:'Rough or irregular, undulating (Jr 3)', n:3},
+  {v:'Smooth, undulating', t:'Smooth, undulating (Jr 2)', n:2},
+  {v:'Slickensided, undulating', t:'Slickensided, undulating (Jr 1.5)', n:1.5},
+  {v:'Rough, irregular, planar', t:'Rough, irregular, planar (Jr 1.5)', n:1.5},
+  {v:'Smooth, planar', t:'Smooth, planar (Jr 1)', n:1},
+  {v:'Slickensided, planar', t:'Slickensided, planar (Jr 0.5)', n:0.5},
+  {v:'Zone containing clay minerals thick enough to prevent rock-wall contact', t:'Zone containing clay minerals thick enough to prevent rock-wall contact (Jr 1)', n:1}
+];
+const JA_OPTS = [
+  {t:'Tightly healed, hard, non-softening, impermeable filling (quartz or epidote)', n:0.75},
+  {t:'Unaltered joint walls, surface staining only', n:1},
+  {t:'Slightly altered joint walls, non-softening mineral coatings, sandy particles, clay-free disintegrated rock', n:2},
+  {t:'Silty or sandy clay coatings, small clay fraction (non-softening)', n:3},
+  {t:'Softening or low-friction clay mineral coatings (kaolinite, mica, chlorite, talc, gypsum, graphite) with small quantities of swelling clays', n:4},
+  {t:'Sandy particles, clay-free disintegrated rock', n:4},
+  {t:'Strongly over-consolidated, non-softening clay mineral fillings (continuous, <5mm thickness)', n:6},
+  {t:'Medium or low over-consolidation, softening clay mineral fillings (continuous, <5mm thickness)', n:8},
+  {t:'Swelling-clay fillings, e.g. montmorillonite (continuous, <5mm thickness) [mid-value of 8-12]', n:10},
+  {t:'Zones/bands of disintegrated or crushed rock, strongly over-consolidated', n:6},
+  {t:'Zones/bands of clay, disintegrated or crushed rock, medium/low over-consolidation or softening fillings', n:8},
+  {t:'Zones/bands of clay, disintegrated or crushed rock, swelling clay [mid-value of 8-12]', n:10},
+  {t:'Thick continuous zones or bands of clay, strongly over-consolidated', n:10},
+  {t:'Thick, continuous zones or bands of clay, medium to low over-consolidation', n:13},
+  {t:'Thick, continuous zones/bands with clay, swelling clay [mid-value of 13-20]', n:16.5}
+];
+const JW_OPTS = [
+  {v:'', t:'-- select --', n:null},
+  {v:'Dry excavations or minor inflow (humid or a few drips)', t:'Dry excavations or minor inflow (humid or a few drips) (Jw 1.0)', n:1.0},
+  {v:'Medium inflow, occasional outwash of joint fillings', t:'Medium inflow, occasional outwash of joint fillings, many drips/"rain" (Jw 0.66)', n:0.66},
+  {v:'Large inflow or high pressure in competent rock with unfilled joints', t:'Large inflow or high pressure in competent rock with unfilled joints (Jw 0.5)', n:0.5},
+  {v:'Large inflow or high pressure, considerable outwash of joint fillings', t:'Large inflow or high pressure, considerable outwash of joint fillings (Jw 0.33)', n:0.33},
+  {v:'Exceptionally high inflow or water pressure, decaying with time', t:'Exceptionally high inflow or water pressure decaying with time, causes outwash of material [mid-value 0.15] (Jw 0.2-0.1)', n:0.15},
+  {v:'Exceptionally high inflow or water pressure without noticeable decay', t:'Exceptionally high inflow or water pressure continuing without noticeable decay [mid-value 0.075] (Jw 0.1-0.05)', n:0.075}
+];
+/* SRF table - standard NGI Q-system Stress Reduction Factor classification (Barton et al.) */
+const SRF_OPTS = [
+  {grp:'A. Weakness zones intersecting excavation (may loosen rock mass)', items:[
+    {t:'Multiple weakness zones with clay or chemically disintegrated rock, very loose surrounding rock (any depth)', n:10},
+    {t:'Single weakness zone with clay or chemically disintegrated rock, depth of excavation \u2264 50m', n:5},
+    {t:'Single weakness zone with clay or chemically disintegrated rock, depth of excavation > 50m', n:2.5},
+    {t:'Multiple shear zones in competent rock (clay free), loose surrounding rock (any depth)', n:7.5},
+    {t:'Single shear zone in competent rock (clay free), depth of excavation \u2264 50m', n:5},
+    {t:'Single shear zone in competent rock (clay free), depth of excavation > 50m', n:2.5},
+    {t:'Loose, open joints, heavily jointed or "sugar cube" etc (any depth)', n:5}
+  ]},
+  {grp:'B. Competent rock \u2014 rock stress problems (\u03c3c/\u03c31)', items:[
+    {t:'Low stress, near surface, open joints (\u03c3c/\u03c31 > 200)', n:2.5},
+    {t:'Medium stress, favourable stress condition (\u03c3c/\u03c31 = 200-10)', n:1},
+    {t:'High stress, very tight structure, usually favourable to stability, may be unfavourable for wall stability (\u03c3c/\u03c31 = 10-5)', n:1.25},
+    {t:'Moderate slabbing after > 1hr in massive rock (\u03c3c/\u03c31 = 5-3) [mid-value]', n:27.5},
+    {t:'Slabbing and rock burst after few minutes in massive rock (\u03c3c/\u03c31 = 3-2) [mid-value]', n:125},
+    {t:'Heavy rock burst (strain-burst) and immediate dynamic deformation in massive rock (\u03c3c/\u03c31 < 2) [mid-value]', n:300}
+  ]},
+  {grp:'C. Squeezing rock \u2014 plastic flow of incompetent rock under high pressure', items:[
+    {t:'Mild squeezing rock pressure [mid-value]', n:7.5},
+    {t:'Heavy squeezing rock pressure [mid-value]', n:15}
+  ]},
+  {grp:'D. Swelling rock \u2014 chemical swelling activity depending on water', items:[
+    {t:'Mild swelling rock pressure [mid-value]', n:7.5},
+    {t:'Heavy swelling rock pressure [mid-value]', n:12.5}
+  ]}
+];
+
+/* ---------------------------------------------------------------------
+   STATE
+--------------------------------------------------------------------- */
+const state = {
+  outcropId:'',
+  location:{lat:null,lon:null,elev:null,acc:null,capturedAt:null},
+  desc:{strength:'',structure:'',colour:'',texture:'',grain:'',rockname:''},
+  jointSets:[], // {id,dip,dipDir,spacing,persistence,termination,aperture,infill,seepage}
+  randomJoints:0,
+  photo:{dataUrl:null, meta:null},
+  gsi:{chartDataUrl:null, annotatedDataUrl:null, min:'', max:''},
+  q:{rqd:'', jn:'', jr:'', ja:'', jw:'', srf:''}
+};
+
+let nextJointNum = 1;
+const TAB_ORDER = ['location','description','joints','photo','gsi','qsystem','save'];
+let currentTab = 'location';
+
+/* ---------------------------------------------------------------------
+   UTIL
+--------------------------------------------------------------------- */
+function esc(s){return (s===undefined||s===null)?'':String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function fmtNum(n,dp){return (n===null||n===undefined||isNaN(n))?'--':Number(n).toFixed(dp===undefined?2:dp);}
+function pad(n,len){n=String(Math.round(n));while(n.length<len)n='0'+n;return n;}
+
+function updateHeaderBadge(){
+  document.getElementById('headBadge').textContent = state.outcropId ? state.outcropId.toUpperCase() : 'NO ID';
+}
+
+/* ---------------------------------------------------------------------
+   TAB CONTROLLER
+--------------------------------------------------------------------- */
+const RENDERERS = {
+  location: {render:renderLocationSafe, bind:bindLocationSafe},
+  description: {render:renderDescriptionSafe, bind:bindDescriptionSafe},
+  joints: {render:renderJointsSafe, bind:bindJointsSafe},
+  photo: {render:renderPhotoSafe, bind:bindPhotoSafe},
+  gsi: {render:renderGsiSafe, bind:bindGsiSafe},
+  qsystem: {render:renderQsystemSafe, bind:bindQsystemSafe},
+  save: {render:renderSaveSafe, bind:bindSaveSafe}
+};
+/* thin wrappers so hoisting order in this <script> block doesn't matter */
+function renderLocationSafe(){return renderLocation();}
+function bindLocationSafe(){return bindLocation();}
+function renderDescriptionSafe(){return renderDescription();}
+function bindDescriptionSafe(){return bindDescription();}
+function renderJointsSafe(){return renderJoints();}
+function bindJointsSafe(){return bindJoints();}
+function renderPhotoSafe(){return renderPhoto();}
+function bindPhotoSafe(){return bindPhoto();}
+function renderGsiSafe(){return renderGsi();}
+function bindGsiSafe(){return bindGsi();}
+function renderQsystemSafe(){return renderQsystem();}
+function bindQsystemSafe(){return bindQsystem();}
+function renderSaveSafe(){return renderSave();}
+function bindSaveSafe(){return bindSave();}
+
+function renderTab(){
+  const r = RENDERERS[currentTab];
+  document.getElementById('mainArea').innerHTML = r.render();
+  r.bind();
+  updateHeaderBadge();
+  document.querySelectorAll('#tabNav button').forEach(b=>{
+    b.classList.toggle('active', b.getAttribute('data-tab')===currentTab);
+  });
+  const idx = TAB_ORDER.indexOf(currentTab);
+  document.getElementById('quickPrev').disabled = idx<=0;
+  document.getElementById('quickNext').textContent = (idx>=TAB_ORDER.length-1) ? 'Finish' : 'Next →';
+  window.scrollTo({top:0, behavior:'instant'});
+}
+function goToTab(name){
+  // preserve any in-progress canvas annotation before leaving photo/gsi tabs
+  if(currentTab==='photo') capturePhotoCanvasToState();
+  if(currentTab==='gsi') captureGsiCanvasToState();
+  currentTab = name;
+  renderTab();
+}
+
+document.getElementById('tabNav').addEventListener('click', e=>{
+  const btn = e.target.closest('button[data-tab]');
+  if(btn) goToTab(btn.getAttribute('data-tab'));
+});
+document.getElementById('quickPrev').addEventListener('click', ()=>{
+  const idx = TAB_ORDER.indexOf(currentTab);
+  if(idx>0) goToTab(TAB_ORDER[idx-1]);
+});
+document.getElementById('quickNext').addEventListener('click', ()=>{
+  const idx = TAB_ORDER.indexOf(currentTab);
+  if(idx<TAB_ORDER.length-1) goToTab(TAB_ORDER[idx+1]);
+  else window.scrollTo({top:0, behavior:'smooth'});
+});
+
+renderTab();
+
+/* ---------------------------------------------------------------------
+   SHARED: simple annotation canvas (used by Photo and GSI tabs)
+--------------------------------------------------------------------- */
+function setupAnnotationCanvas(canvas, baseImage){
+  const ctx = canvas.getContext('2d');
+  let drawing = false, last = null;
+  let color = '#c1440e';
+
+  function pos(e){
+    const rect = canvas.getBoundingClientRect();
+    const cx = (e.touches? e.touches[0].clientX : e.clientX) - rect.left;
+    const cy = (e.touches? e.touches[0].clientY : e.clientY) - rect.top;
+    return {x: cx * (canvas.width/rect.width), y: cy * (canvas.height/rect.height)};
+  }
+  function start(e){ e.preventDefault(); drawing=true; last=pos(e); }
+  function move(e){
+    if(!drawing) return;
+    e.preventDefault();
+    const p = pos(e);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 4;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    ctx.moveTo(last.x,last.y);
+    ctx.lineTo(p.x,p.y);
+    ctx.stroke();
+    last = p;
+  }
+  function end(e){ drawing=false; }
+
+  canvas.addEventListener('mousedown', start);
+  canvas.addEventListener('mousemove', move);
+  window.addEventListener('mouseup', end);
+  canvas.addEventListener('touchstart', start, {passive:false});
+  canvas.addEventListener('touchmove', move, {passive:false});
+  canvas.addEventListener('touchend', end);
+
+  return {
+    setColor:(c)=>{color=c;},
+    clear:()=>{
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      if(baseImage) ctx.drawImage(baseImage,0,0,canvas.width,canvas.height);
+    },
+    ctx
+  };
+}
+
+/* ---------------------------------------------------------------------
+   TAB 4: PHOTO CAPTURE
+--------------------------------------------------------------------- */
+let photoAnnotator = null;
+let photoBaseImage = null;
+let compassHeading = null;
+
+function renderPhoto(){
+  return `
+  <div class="card">
+    <h2>Outcrop Photo</h2>
+    <p class="hint">Take a photo, then annotate it directly on screen. The saved file name includes the outcrop ID.</p>
+    <input type="file" accept="image/*" capture="environment" id="photoInput" style="display:none;">
+    <button class="btn primary block" id="btnTakePhoto">📷 Take / choose photo</button>
+    <div class="canvas-wrap" style="margin-top:12px; ${state.photo.dataUrl?'':'display:none;'}" id="photoCanvasWrap">
+      <canvas id="photoCanvas" width="800" height="600"></canvas>
+    </div>
+    <div class="tool-row" id="photoTools" style="${state.photo.dataUrl?'':'display:none;'}">
+      <button class="swatch selected" data-color="#c1440e" style="background:#c1440e"></button>
+      <button class="swatch" data-color="#1c1a15" style="background:#1c1a15"></button>
+      <button class="swatch" data-color="#3f6b3f" style="background:#3f6b3f"></button>
+      <button class="swatch" data-color="#1e5fa8" style="background:#1e5fa8"></button>
+      <button class="swatch" data-color="#f2d43d" style="background:#f2d43d"></button>
+      <button class="btn ghost sm" id="btnClearAnnotations">Restart annotations</button>
+    </div>
+    <div class="meta-box" id="photoMeta">${state.photo.meta ? esc(state.photo.meta) : 'No metadata captured yet.'}</div>
+  </div>`;
+}
+
+function captureDeviceMetadata(cb){
+  const lines = [];
+  lines.push('Captured: '+new Date().toLocaleString());
+  const finish = ()=>{ cb(lines.join('\n')); };
+  if('geolocation' in navigator){
+    navigator.geolocation.getCurrentPosition(pos=>{
+      lines.push('Location: '+pos.coords.latitude.toFixed(6)+', '+pos.coords.longitude.toFixed(6));
+      lines.push('Elevation: '+(pos.coords.altitude!==null?pos.coords.altitude.toFixed(1)+' m':'n/a'));
+      lines.push('GPS accuracy: '+(pos.coords.accuracy!==null?pos.coords.accuracy.toFixed(1)+' m':'n/a'));
+      lines.push('Azimuth (heading): '+(compassHeading!==null?compassHeading.toFixed(0)+'°':'n/a'));
+      finish();
+    }, ()=>{
+      lines.push('Location: unavailable');
+      finish();
+    }, {enableHighAccuracy:true, timeout:8000});
+  } else {
+    lines.push('Location: unavailable');
+    finish();
+  }
+}
+
+function bindPhoto(){
+  // best-effort compass heading
+  if(window.DeviceOrientationEvent){
+    window.addEventListener('deviceorientationabsolute', e=>{
+      if(e.alpha!==null) compassHeading = 360 - e.alpha;
+    }, {once:false});
+    window.addEventListener('deviceorientation', e=>{
+      if(e.webkitCompassHeading!==undefined && e.webkitCompassHeading!==null) compassHeading = e.webkitCompassHeading;
+    }, {once:false});
+  }
+
+  document.getElementById('btnTakePhoto').addEventListener('click', ()=>{
+    document.getElementById('photoInput').click();
+  });
+  document.getElementById('photoInput').addEventListener('change', (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev)=>{
+      const img = new Image();
+      img.onload = ()=>{
+        photoBaseImage = img;
+        const canvas = document.getElementById('photoCanvas');
+        const ratio = img.height/img.width;
+        canvas.width = 800;
+        canvas.height = Math.round(800*ratio);
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img,0,0,canvas.width,canvas.height);
+        state.photo.dataUrl = canvas.toDataURL('image/jpeg',0.85);
+        document.getElementById('photoCanvasWrap').style.display='block';
+        document.getElementById('photoTools').style.display='flex';
+        photoAnnotator = setupAnnotationCanvas(canvas, img);
+        captureDeviceMetadata(meta=>{
+          state.photo.meta = meta;
+          document.getElementById('photoMeta').textContent = meta;
+        });
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  document.querySelectorAll('.swatch').forEach(sw=>{
+    sw.addEventListener('click', ()=>{
+      document.querySelectorAll('.swatch').forEach(s=>s.classList.remove('selected'));
+      sw.classList.add('selected');
+      if(photoAnnotator) photoAnnotator.setColor(sw.getAttribute('data-color'));
+    });
+  });
+  const clearBtn = document.getElementById('btnClearAnnotations');
+  if(clearBtn) clearBtn.addEventListener('click', ()=>{
+    if(photoAnnotator) photoAnnotator.clear();
+  });
+}
+
+function capturePhotoCanvasToState(){
+  const canvas = document.getElementById('photoCanvas');
+  if(canvas && state.photo.dataUrl){
+    state.photo.dataUrl = canvas.toDataURL('image/jpeg',0.9);
+  }
+}
+
+/* ---------------------------------------------------------------------
+   TAB 3: JOINT SETS  (Jv / RQD)
+--------------------------------------------------------------------- */
+let jointFormOpen = false;
+let jointFormDraft = null;
+
+function blankJointDraft(){
+  return {dip:'', dipDir:'', spacing:'', persistence:'', termination:'', aperture:'', infill:'', seepage:''};
+}
+function formatDipDipDir(dip, dipDir){
+  if(dip==='' || dipDir==='') return '';
+  const d = pad(dip,2), dd = pad(dipDir,3);
+  return d+'/'+dd;
+}
+function calcJv(){
+  let sum = 0;
+  state.jointSets.forEach(js=>{
+    const opt = SPACING_OPTS.find(o=>o.v===js.spacing);
+    if(opt && opt.m) sum += 1/opt.m;
+  });
+  const rnd = parseFloat(state.randomJoints)||0;
+  return sum + rnd;
+}
+function calcRQDfromJv(jv){
+  let rqd = 115 - 2.5*jv;
+  if(rqd<0) rqd=0;
+  if(rqd>100) rqd=100;
+  return rqd;
+}
+
+function jointSetSummary(js){
+  const parts = [];
+  parts.push('<b>Dip/Dir:</b> '+esc(formatDipDipDir(js.dip,js.dipDir)||'--'));
+  parts.push('<b>Spacing:</b> '+esc(js.spacing||'--'));
+  parts.push('<b>Persistence:</b> '+esc(js.persistence||'--'));
+  parts.push('<b>Termination:</b> '+esc(js.termination||'--'));
+  parts.push('<b>Aperture:</b> '+esc(js.aperture||'--'));
+  parts.push('<b>Infill:</b> '+esc(js.infill||'--'));
+  parts.push('<b>Seepage:</b> '+esc(js.seepage||'--'));
+  return parts.join(' &nbsp;·&nbsp; ');
+}
+
+function jointFormHtml(draft){
+  return `
+  <div class="jset-card" id="jointFormCard">
+    <div class="jset-head"><span class="jset-id">New joint set — J${nextJointNum}</span></div>
+    <div class="row2">
+      <div class="field"><label for="jfDip">Dip (°)</label>
+        <input type="number" id="jfDip" min="0" max="90" value="${esc(draft.dip)}"></div>
+      <div class="field"><label for="jfDipDir">Dip direction (°)</label>
+        <input type="number" id="jfDipDir" min="0" max="360" value="${esc(draft.dipDir)}"></div>
+    </div>
+    <div class="field"><label for="jfSpacing">Discontinuity spacing</label>
+      <select id="jfSpacing">${optionsHtml(SPACING_OPTS.map(o=>({v:o.v,t:o.t})), draft.spacing)}</select></div>
+    <div class="field"><label for="jfPersistence">Persistence</label>
+      <select id="jfPersistence">${PERSISTENCE_OPTS.map(o=>`<option value="${esc(o)}" ${o===draft.persistence?'selected':''}>${esc(o||'-- select --')}</option>`).join('')}</select></div>
+    <div class="field"><label for="jfTermination">Type of termination</label>
+      <select id="jfTermination">${TERMINATION_OPTS.map(o=>`<option value="${esc(o)}" ${o===draft.termination?'selected':''}>${esc(o||'-- select --')}</option>`).join('')}</select></div>
+    <div class="field"><label for="jfAperture">Aperture</label>
+      <select id="jfAperture">${APERTURE_OPTS.map(o=>`<option value="${esc(o)}" ${o===draft.aperture?'selected':''}>${esc(o||'-- select --')}</option>`).join('')}</select></div>
+    <div class="field"><label for="jfInfill">Infill</label>
+      <input type="text" id="jfInfill" maxlength="40" value="${esc(draft.infill)}"></div>
+    <div class="field"><label for="jfSeepage">Seepage</label>
+      <select id="jfSeepage">${SEEPAGE_OPTS.map(o=>`<option value="${esc(o)}" ${o===draft.seepage?'selected':''}>${esc(o||'-- select --')}</option>`).join('')}</select></div>
+    <div class="tool-row">
+      <button class="btn primary" id="btnSaveJoint">Save joint set</button>
+      <button class="btn ghost" id="btnCancelJoint">Cancel</button>
+    </div>
+  </div>`;
+}
+
+function renderJoints(){
+  const jv = calcJv();
+  const rqd = calcRQDfromJv(jv);
+  let html = `<div class="card"><h2>Joint Sets <span class="ref">BS 5930</span></h2>`;
+  if(state.jointSets.length===0 && !jointFormOpen){
+    html += `<p class="hint">No joint sets recorded yet.</p>`;
+  }
+  state.jointSets.forEach(js=>{
+    html += `<div class="jset-card">
+      <div class="jset-head">
+        <span class="jset-id">${esc(js.id)}</span>
+        <button class="btn danger sm" data-del="${esc(js.id)}">Remove</button>
+      </div>
+      <div class="jset-summary">${jointSetSummary(js)}</div>
+    </div>`;
+  });
+  if(jointFormOpen){
+    html += jointFormHtml(jointFormDraft);
+  } else {
+    html += `<button class="btn primary block" id="btnAddJoint">+ Add new joint set</button>`;
+  }
+  html += `</div>`;
+
+  html += `
+  <div class="card">
+    <h2>Random joints</h2>
+    <div class="field">
+      <label for="fRandom">Random discontinuities (per m³)</label>
+      <input type="number" id="fRandom" min="0" step="0.1" value="${esc(state.randomJoints)}">
+      <div class="desc">Added to the summed joint-set counts when calculating Jv.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Volumetric Joint Count &amp; RQD</h2>
+    <div class="result-box">
+      <div class="r-line"><span>Jv = Σ(1/Si) + random joints</span><span>${fmtNum(jv,2)} joints/m³</span></div>
+      <div class="r-line total"><span>RQD = 115 − 2.5·Jv</span><span>${fmtNum(rqd,1)} %</span></div>
+    </div>
+    <p class="hint" style="margin-top:8px;margin-bottom:0;">Reference: Palmström (2005). Spacing bands are converted to a representative spacing (midpoint of range) to compute 1/Si for each joint set.</p>
+  </div>`;
+  return html;
+}
+
+function bindJoints(){
+  document.querySelectorAll('[data-del]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const id = btn.getAttribute('data-del');
+      state.jointSets = state.jointSets.filter(j=>j.id!==id);
+      renderTab();
+    });
+  });
+  const addBtn = document.getElementById('btnAddJoint');
+  if(addBtn) addBtn.addEventListener('click', ()=>{
+    jointFormOpen = true;
+    jointFormDraft = blankJointDraft();
+    renderTab();
+  });
+  const randomInput = document.getElementById('fRandom');
+  if(randomInput) randomInput.addEventListener('input', ()=>{
+    state.randomJoints = randomInput.value;
+    if(jointFormOpen){
+      // avoid wiping the in-progress joint set form; just refresh the Jv/RQD result box
+      const jv = calcJv(), rqd = calcRQDfromJv(jv);
+      const rb = document.querySelector('#mainArea .result-box');
+      if(rb){
+        rb.children[0].querySelector('span:last-child').textContent = fmtNum(jv,2)+' joints/m³';
+        rb.children[1].querySelector('span:last-child').textContent = fmtNum(rqd,1)+' %';
+      }
+    } else {
+      renderTab();
+    }
+  });
+  const saveBtn = document.getElementById('btnSaveJoint');
+  if(saveBtn){
+    saveBtn.addEventListener('click', ()=>{
+      const js = {
+        id: 'J'+nextJointNum,
+        dip: document.getElementById('jfDip').value,
+        dipDir: document.getElementById('jfDipDir').value,
+        spacing: document.getElementById('jfSpacing').value,
+        persistence: document.getElementById('jfPersistence').value,
+        termination: document.getElementById('jfTermination').value,
+        aperture: document.getElementById('jfAperture').value,
+        infill: document.getElementById('jfInfill').value,
+        seepage: document.getElementById('jfSeepage').value
+      };
+      state.jointSets.push(js);
+      nextJointNum++;
+      jointFormOpen = false;
+      jointFormDraft = null;
+      renderTab();
+    });
+  }
+  const cancelBtn = document.getElementById('btnCancelJoint');
+  if(cancelBtn) cancelBtn.addEventListener('click', ()=>{
+    jointFormOpen = false;
+    jointFormDraft = null;
+    renderTab();
+  });
+}
+
+/* ---------------------------------------------------------------------
+   TAB 5: GSI
+--------------------------------------------------------------------- */
+let gsiAnnotator = null;
+let gsiBaseImage = null;
+
+function renderGsi(){
+  const minV = parseFloat(state.gsi.min), maxV = parseFloat(state.gsi.max);
+  const avg = (!isNaN(minV) && !isNaN(maxV)) ? (minV+maxV)/2 : null;
+  return `
+  <div class="card">
+    <h2>GSI Estimation <span class="ref">Hoek &amp; Marinos (2000)</span></h2>
+    <p class="hint">Load your own copy of the GSI chart image (device storage), then circle the applicable range directly on it for the record.</p>
+    <input type="file" accept="image/*" id="gsiInput" style="display:none;">
+    <button class="btn ghost block" id="btnLoadGsiChart">🖼 Load GSI chart image</button>
+    <div class="canvas-wrap" style="margin-top:12px; ${state.gsi.chartDataUrl?'':'display:none;'}" id="gsiCanvasWrap">
+      <canvas id="gsiCanvas" width="800" height="600"></canvas>
+    </div>
+    <div class="tool-row" id="gsiTools" style="${state.gsi.chartDataUrl?'':'display:none;'}">
+      <button class="swatch selected" data-gcolor="#c1440e" style="background:#c1440e"></button>
+      <button class="swatch" data-gcolor="#1c1a15" style="background:#1c1a15"></button>
+      <button class="swatch" data-gcolor="#1e5fa8" style="background:#1e5fa8"></button>
+      <button class="btn ghost sm" id="btnClearGsiAnnotations">Restart annotations</button>
+    </div>
+    <p class="hint" style="margin-bottom:0;margin-top:10px;">Reference: Hoek &amp; Marinos (2000).</p>
+  </div>
+
+  <div class="card">
+    <h2>GSI Range</h2>
+    <div class="row3">
+      <div class="field"><label for="gsiMin">Min GSI</label>
+        <input type="number" id="gsiMin" min="0" max="100" value="${esc(state.gsi.min)}"></div>
+      <div class="field"><label for="gsiMax">Max GSI</label>
+        <input type="number" id="gsiMax" min="0" max="100" value="${esc(state.gsi.max)}"></div>
+      <div class="field"><label>Average GSI</label>
+        <input type="text" value="${avg===null?'--':fmtNum(avg,1)}" disabled></div>
+    </div>
+  </div>`;
+}
+
+function bindGsi(){
+  document.getElementById('btnLoadGsiChart').addEventListener('click', ()=>{
+    document.getElementById('gsiInput').click();
+  });
+  document.getElementById('gsiInput').addEventListener('change', (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev)=>{
+      const img = new Image();
+      img.onload = ()=>{
+        gsiBaseImage = img;
+        const canvas = document.getElementById('gsiCanvas');
+        const ratio = img.height/img.width;
+        canvas.width = 800;
+        canvas.height = Math.round(800*ratio);
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img,0,0,canvas.width,canvas.height);
+        state.gsi.chartDataUrl = canvas.toDataURL('image/jpeg',0.85);
+        document.getElementById('gsiCanvasWrap').style.display='block';
+        document.getElementById('gsiTools').style.display='flex';
+        gsiAnnotator = setupAnnotationCanvas(canvas, img);
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+  document.querySelectorAll('[data-gcolor]').forEach(sw=>{
+    sw.addEventListener('click', ()=>{
+      document.querySelectorAll('[data-gcolor]').forEach(s=>s.classList.remove('selected'));
+      sw.classList.add('selected');
+      if(gsiAnnotator) gsiAnnotator.setColor(sw.getAttribute('data-gcolor'));
+    });
+  });
+  const clearBtn = document.getElementById('btnClearGsiAnnotations');
+  if(clearBtn) clearBtn.addEventListener('click', ()=>{ if(gsiAnnotator) gsiAnnotator.clear(); });
+
+  function updateAvgField(){
+    const minV = parseFloat(state.gsi.min), maxV = parseFloat(state.gsi.max);
+    const avg = (!isNaN(minV) && !isNaN(maxV)) ? (minV+maxV)/2 : null;
+    const avgEl = document.querySelector('#mainArea .row3 .field:last-child input');
+    if(avgEl) avgEl.value = avg===null?'--':fmtNum(avg,1);
+  }
+  document.getElementById('gsiMin').addEventListener('input', e=>{
+    state.gsi.min = e.target.value; updateAvgField();
+  });
+  document.getElementById('gsiMax').addEventListener('input', e=>{
+    state.gsi.max = e.target.value; updateAvgField();
+  });
+}
+function captureGsiCanvasToState(){
+  const canvas = document.getElementById('gsiCanvas');
+  if(canvas && state.gsi.chartDataUrl){
+    state.gsi.annotatedDataUrl = canvas.toDataURL('image/jpeg',0.9);
+  }
+}
+
+/* ---------------------------------------------------------------------
+   TAB 6: Q-SYSTEM
+--------------------------------------------------------------------- */
+function getJwNum(){
+  const opt = JW_OPTS.find(o=>o.v===state.q.jw);
+  return opt?opt.n:null;
+}
+function renderQsystem(){
+  const q = calcQ();
+  let srfHtml = '';
+  SRF_OPTS.forEach((grp,gi)=>{
+    srfHtml += `<p class="hint" style="margin:${gi===0?'0':'10px'} 0 6px;font-weight:600;color:var(--ink-soft);">${esc(grp.grp)}</p><div class="optlist" style="margin-bottom:8px;">`;
+    grp.items.forEach((it,ii)=>{
+      const id = 'srf_'+gi+'_'+ii;
+      const val = gi+'_'+ii;
+      srfHtml += `<label><input type="radio" name="srfChoice" value="${val}" data-n="${it.n}" ${state.q.srf==it.n && state.q._srfSel===val?'checked':''}>
+        <span>${esc(it.t)} <span class="tag">SRF ${it.n}</span></span></label>`;
+    });
+    srfHtml += `</div>`;
+  });
+
+  let jaHtml = '<div class="optlist">';
+  JA_OPTS.forEach((it,i)=>{
+    jaHtml += `<label><input type="radio" name="jaChoice" value="${i}" data-n="${it.n}" ${state.q._jaIdx===i?'checked':''}>
+      <span>${esc(it.t)} <span class="tag">Ja ${it.n}</span></span></label>`;
+  });
+  jaHtml += '</div>';
+
+  return `
+  <div class="card">
+    <h2>Q-System Calculation <span class="ref">Barton, Lien &amp; Lunde</span></h2>
+    <div class="formula">Q = (RQD / Jn) × (Jr / Ja) × (Jw / SRF)</div>
+
+    <div class="field">
+      <label for="qRqd">RQD (%)</label>
+      <input type="number" id="qRqd" maxlength="3" min="0" max="100" value="${esc(state.q.rqd)}" placeholder="0-100">
+    </div>
+
+    <div class="field">
+      <label for="qJn">Joint set number (Jn)</label>
+      <select id="qJn">${optionsHtml(JN_OPTS.map(o=>({v:o.v,t:o.t})), state.q.jn)}</select>
+    </div>
+
+    <div class="field">
+      <label for="qJr">Joint roughness number (Jr)</label>
+      <select id="qJr">${optionsHtml(JR_OPTS.map(o=>({v:o.v,t:o.t})), state.q.jr)}</select>
+    </div>
+
+    <div class="field">
+      <label>Joint alteration number (Ja) — select one</label>
+      ${jaHtml}
+    </div>
+
+    <div class="field">
+      <label for="qJw">Joint water reduction factor (Jw)</label>
+      <select id="qJw">${optionsHtml(JW_OPTS.map(o=>({v:o.v,t:o.t})), state.q.jw)}</select>
+    </div>
+
+    <div class="field">
+      <label>Stress Reduction Factor (SRF) — select one</label>
+      ${srfHtml}
+    </div>
+
+    <div class="result-box">
+      <div class="r-line"><span>RQD/Jn</span><span>${(state.q.rqd&&getJnNum())?fmtNum(parseFloat(state.q.rqd)/getJnNum(),2):'--'}</span></div>
+      <div class="r-line"><span>Jr/Ja</span><span>${(getJrNum()&&state.q.ja)?fmtNum(getJrNum()/parseFloat(state.q.ja),2):'--'}</span></div>
+      <div class="r-line"><span>Jw/SRF</span><span>${(getJwNum()&&state.q.srf)?fmtNum(getJwNum()/parseFloat(state.q.srf),3):'--'}</span></div>
+      <div class="r-line total"><span>Q</span><span>${q===null?'--':fmtNum(q,2)}</span></div>
+    </div>
+  </div>`;
+}
+function getJnNum(){
+  const opt = JN_OPTS.find(o=>o.v===state.q.jn);
+  return opt?opt.n:null;
+}
+function getJrNum(){
+  const opt = JR_OPTS.find(o=>o.v===state.q.jr);
+  return opt?opt.n:null;
+}
+function refreshQResult(){
+  const q = calcQ();
+  const rb = document.querySelector('#mainArea .result-box');
+  if(!rb) return;
+  const jnNum = getJnNum();
+  const jrNum = getJrNum();
+  const jwNum = getJwNum();
+  rb.children[0].querySelector('span:last-child').textContent = (state.q.rqd&&jnNum)?fmtNum(parseFloat(state.q.rqd)/jnNum,2):'--';
+  rb.children[1].querySelector('span:last-child').textContent = (jrNum&&state.q.ja)?fmtNum(jrNum/parseFloat(state.q.ja),2):'--';
+  rb.children[2].querySelector('span:last-child').textContent = (jwNum&&state.q.srf)?fmtNum(jwNum/parseFloat(state.q.srf),3):'--';
+  rb.children[3].querySelector('span:last-child').textContent = q===null?'--':fmtNum(q,2);
+}
+function calcQ(){
+  const rqd = parseFloat(state.q.rqd);
+  const jn = getJnNum();
+  const jr = getJrNum();
+  const ja = parseFloat(state.q.ja);
+  const jw = getJwNum();
+  const srf = parseFloat(state.q.srf);
+  if(isNaN(rqd)||!jn||!jr||isNaN(ja)||!jw||!srf) return null;
+  return (rqd/jn) * (jr/ja) * (jw/srf);
+}
+function bindQsystem(){
+  document.getElementById('qRqd').addEventListener('input', e=>{ state.q.rqd = e.target.value; refreshQResult(); });
+  document.getElementById('qJn').addEventListener('change', e=>{
+    state.q.jn = e.target.value;
+    refreshQResult();
+  });
+  document.getElementById('qJr').addEventListener('change', e=>{
+    state.q.jr = e.target.value;
+    refreshQResult();
+  });
+  document.querySelectorAll('[name=jaChoice]').forEach(r=>{
+    r.addEventListener('change', e=>{
+      state.q._jaIdx = parseInt(e.target.value,10);
+      state.q.ja = e.target.getAttribute('data-n');
+      refreshQResult();
+    });
+  });
+  document.getElementById('qJw').addEventListener('change', e=>{
+    state.q.jw = e.target.value;
+    refreshQResult();
+  });
+  document.querySelectorAll('[name=srfChoice]').forEach(r=>{
+    r.addEventListener('change', e=>{
+      state.q.srf = e.target.getAttribute('data-n');
+      state.q._srfSel = e.target.value;
+      refreshQResult();
+    });
+  });
+}
+
+/* ---------------------------------------------------------------------
+   TAB 7: SAVE / EXPORT
+--------------------------------------------------------------------- */
+function csvEscape(v){
+  if(v===null||v===undefined) v='';
+  v = String(v);
+  if(/[",\n]/.test(v)) v = '"'+v.replace(/"/g,'""')+'"';
+  return v;
+}
+function buildRecordCsv(){
+  const rows = [];
+  const jv = calcJv(), rqdFromJv = calcRQDfromJv(jv);
+  const q = calcQ();
+  const minV = parseFloat(state.gsi.min), maxV = parseFloat(state.gsi.max);
+  const avgGsi = (!isNaN(minV)&&!isNaN(maxV))?(minV+maxV)/2:'';
+
+  rows.push(['Section','Field','Value']);
+  rows.push(['Location','Outcrop ID', state.outcropId]);
+  rows.push(['Location','Latitude', state.location.lat]);
+  rows.push(['Location','Longitude', state.location.lon]);
+  rows.push(['Location','Elevation (m)', state.location.elev]);
+  rows.push(['Location','GPS accuracy (m)', state.location.acc]);
+  rows.push(['Location','Captured at', state.location.capturedAt? new Date(state.location.capturedAt).toISOString():'']);
+
+  rows.push(['BS5930 Description','Strength', state.desc.strength]);
+  rows.push(['BS5930 Description','Structure', state.desc.structure]);
+  rows.push(['BS5930 Description','Colour', state.desc.colour]);
+  rows.push(['BS5930 Description','Texture', state.desc.texture]);
+  rows.push(['BS5930 Description','Grain size', state.desc.grain]);
+  rows.push(['BS5930 Description','Rock name', state.desc.rockname.toUpperCase()]);
+  rows.push(['BS5930 Description','Full description', buildBS5930Description()]);
+
+  state.jointSets.forEach(js=>{
+    rows.push(['Joint Set '+js.id,'Dip/Dip Direction', formatDipDipDir(js.dip,js.dipDir)]);
+    rows.push(['Joint Set '+js.id,'Discontinuity spacing', js.spacing]);
+    rows.push(['Joint Set '+js.id,'Persistence', js.persistence]);
+    rows.push(['Joint Set '+js.id,'Type of termination', js.termination]);
+    rows.push(['Joint Set '+js.id,'Aperture', js.aperture]);
+    rows.push(['Joint Set '+js.id,'Infill', js.infill]);
+    rows.push(['Joint Set '+js.id,'Seepage', js.seepage]);
+  });
+  rows.push(['Joint Sets Summary','Random joints (per m3)', state.randomJoints||0]);
+  rows.push(['Joint Sets Summary','Volumetric Joint Count Jv (joints/m3)', fmtNum(jv,2)]);
+  rows.push(['Joint Sets Summary','RQD from Jv (%) [Palmstrom 2005]', fmtNum(rqdFromJv,1)]);
+
+  rows.push(['Photo','File name', state.outcropId ? (state.outcropId.replace(/\s+/g,'_')+'_photo.jpg') : '']);
+  rows.push(['Photo','Metadata', state.photo.meta||'']);
+
+  rows.push(['GSI','Min GSI', state.gsi.min]);
+  rows.push(['GSI','Max GSI', state.gsi.max]);
+  rows.push(['GSI','Average GSI', avgGsi]);
+  rows.push(['GSI','Reference', 'Hoek & Marinos (2000)']);
+  rows.push(['GSI','Annotated chart file', state.gsi.annotatedDataUrl ? (state.outcropId.replace(/\s+/g,'_')+'_GSI.jpg') : '']);
+
+  rows.push(['Q-System','RQD input (%)', state.q.rqd]);
+  rows.push(['Q-System','Jn (joint set number)', getJnNum()]);
+  rows.push(['Q-System','Jr (joint roughness number)', getJrNum()]);
+  rows.push(['Q-System','Ja (joint alteration number)', state.q.ja]);
+  rows.push(['Q-System','Jw (joint water reduction factor)', getJwNum()]);
+  rows.push(['Q-System','SRF (stress reduction factor)', state.q.srf]);
+  rows.push(['Q-System','Q value', q===null?'':fmtNum(q,2)]);
+  rows.push(['Q-System','Reference', 'Barton, Lien & Lunde (1974)']);
+
+  return rows.map(r=>r.map(csvEscape).join(',')).join('\n');
+}
+
+function downloadBlob(filename, content, mime){
+  const blob = new Blob([content], {type:mime});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 4000);
+}
+function downloadDataUrl(filename, dataUrl){
+  const a = document.createElement('a');
+  a.href = dataUrl;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+function renderSave(){
+  const jv = calcJv(), rqd = calcRQDfromJv(jv);
+  const q = calcQ();
+  return `
+  <div class="card">
+    <h2>Record Summary</h2>
+    <div class="chip-row">
+      <span class="chip">ID: ${esc(state.outcropId||'--')}</span>
+      <span class="chip">${state.location.lat!==null?'GPS ✓':'GPS ✗'}</span>
+      <span class="chip">${state.jointSets.length} joint set(s)</span>
+      <span class="chip">${state.photo.dataUrl?'Photo ✓':'Photo ✗'}</span>
+      <span class="chip">${(state.gsi.min&&state.gsi.max)?'GSI ✓':'GSI ✗'}</span>
+      <span class="chip">${q!==null?'Q = '+fmtNum(q,2):'Q --'}</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Rock Description</h2>
+    <div class="desc-preview">${esc(buildBS5930Description())||'(not completed)'}</div>
+  </div>
+
+  <div class="card">
+    <h2>Calculated Values</h2>
+    <div class="result-box">
+      <div class="r-line"><span>Jv</span><span>${fmtNum(jv,2)} joints/m³</span></div>
+      <div class="r-line"><span>RQD (from Jv)</span><span>${fmtNum(rqd,1)} %</span></div>
+      <div class="r-line total"><span>Q</span><span>${q===null?'--':fmtNum(q,2)}</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Save Record</h2>
+    <p class="hint">Saves one combined CSV file for this record. The photo and annotated GSI chart (if captured) are downloaded alongside it as separate image files, all named with the outcrop ID.</p>
+    <button class="btn primary block" id="btnSaveRecord" ${state.outcropId?'':'disabled'}>💾 Save record (CSV + files)</button>
+    ${state.outcropId?'':'<p class="hint" style="color:var(--bad);margin-top:8px;margin-bottom:0;">Enter an outcrop ID on the Location tab before saving.</p>'}
+    <div class="status-line" id="saveStatus"></div>
+  </div>`;
+}
+
+function bindSave(){
+  const btn = document.getElementById('btnSaveRecord');
+  if(!btn) return;
+  btn.addEventListener('click', ()=>{
+    capturePhotoCanvasToState();
+    captureGsiCanvasToState();
+    const safeId = state.outcropId.trim().replace(/\s+/g,'_');
+    const csv = buildRecordCsv();
+    downloadBlob(safeId+'_record.csv', csv, 'text/csv');
+    if(state.photo.dataUrl) downloadDataUrl(safeId+'_photo.jpg', state.photo.dataUrl);
+    if(state.gsi.annotatedDataUrl) downloadDataUrl(safeId+'_GSI.jpg', state.gsi.annotatedDataUrl);
+    document.getElementById('saveStatus').innerHTML = '<span class="badge-ok">Record saved — check your downloads.</span>';
+  });
+}
+
+/* ---------------------------------------------------------------------
+   TAB 1: LOCATION
+--------------------------------------------------------------------- */
+function renderLocation(){
+  const L = state.location;
+  const gotFix = L.lat!==null;
+  return `
+  <div class="card">
+    <h2>Outcrop Identification</h2>
+    <div class="field">
+      <label for="outcropId">Outcrop name / ID</label>
+      <input type="text" id="outcropId" placeholder="e.g. OC-01" value="${esc(state.outcropId)}" maxlength="40">
+      <div class="desc">This becomes the record ID used for the CSV file name and saved photos.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Location <span class="ref">device GPS</span></h2>
+    <p class="hint">Captures latitude, longitude and elevation from the device's GPS. Works offline once a satellite fix is available.</p>
+    <button class="btn primary block" id="btnGetLocation">📍 Capture current location</button>
+    <div class="result-box" style="margin-top:12px;">
+      <div class="r-line"><span>Latitude</span><span>${gotFix?fmtNum(L.lat,6):'--'}</span></div>
+      <div class="r-line"><span>Longitude</span><span>${gotFix?fmtNum(L.lon,6):'--'}</span></div>
+      <div class="r-line"><span>Elevation (m)</span><span>${(L.elev!==null&&L.elev!==undefined)?fmtNum(L.elev,1):'--'}</span></div>
+      <div class="r-line"><span>Accuracy (m)</span><span>${(L.acc!==null&&L.acc!==undefined)?fmtNum(L.acc,1):'--'}</span></div>
+      <div class="r-line"><span>Captured</span><span>${L.capturedAt?new Date(L.capturedAt).toLocaleString():'--'}</span></div>
+    </div>
+    <div class="status-line" id="locStatus"></div>
+  </div>`;
+}
+
+function bindLocation(){
+  document.getElementById('outcropId').addEventListener('input', e=>{
+    state.outcropId = e.target.value;
+    updateHeaderBadge();
+  });
+  document.getElementById('btnGetLocation').addEventListener('click', ()=>{
+    const statusEl = document.getElementById('locStatus');
+    if(!('geolocation' in navigator)){
+      statusEl.innerHTML = '<span class="badge-bad">Geolocation not supported on this device.</span>';
+      return;
+    }
+    statusEl.textContent = 'Acquiring GPS fix…';
+    navigator.geolocation.getCurrentPosition(pos=>{
+      state.location.lat = pos.coords.latitude;
+      state.location.lon = pos.coords.longitude;
+      state.location.elev = pos.coords.altitude;
+      state.location.acc = pos.coords.accuracy;
+      state.location.capturedAt = Date.now();
+      statusEl.innerHTML = '<span class="badge-ok">Location captured.</span>';
+      renderTab();
+    }, err=>{
+      statusEl.innerHTML = '<span class="badge-bad">Could not get location: '+esc(err.message)+'</span>';
+    }, {enableHighAccuracy:true, timeout:20000, maximumAge:0});
+  });
+}
+
+/* ---------------------------------------------------------------------
+   TAB 2: BS5930 ROCK DESCRIPTION
+--------------------------------------------------------------------- */
+function optionsHtml(opts, current){
+  return opts.map(o=>`<option value="${esc(o.v)}" ${o.v===current?'selected':''}>${esc(o.t)}</option>`).join('');
+}
+function buildBS5930Description(){
+  const d = state.desc;
+  const parts = [];
+  if(d.strength) parts.push(d.strength);
+  if(d.structure) parts.push(d.structure);
+  if(d.colour) parts.push(d.colour.trim());
+  if(d.texture) parts.push(d.texture);
+  if(d.grain) parts.push(d.grain);
+  if(d.rockname) parts.push(d.rockname.toUpperCase());
+  return parts.filter(Boolean).join(', ');
+}
+function renderDescription(){
+  const d = state.desc;
+  return `
+  <div class="card">
+    <h2>Generic Rock Description <span class="ref">BS 5930</span></h2>
+    <p class="hint">Build the description field-by-field; the strings are concatenated in the order shown below.</p>
+
+    <div class="field">
+      <label for="fStrength">1. Strength</label>
+      <select id="fStrength">${optionsHtml(STRENGTH_OPTS, d.strength)}</select>
+    </div>
+    <div class="field">
+      <label for="fStructure">2. Structure</label>
+      <select id="fStructure">${optionsHtml(STRUCTURE_OPTS, d.structure)}</select>
+    </div>
+    <div class="field">
+      <label for="fColour">3. Colour</label>
+      <input type="text" id="fColour" maxlength="30" value="${esc(d.colour)}" placeholder="e.g. light grey">
+    </div>
+    <div class="field">
+      <label for="fTexture">4. Texture</label>
+      <select id="fTexture">${optionsHtml(TEXTURE_OPTS, d.texture)}</select>
+    </div>
+    <div class="field">
+      <label for="fGrain">5. Grain size</label>
+      <select id="fGrain">${optionsHtml(GRAIN_OPTS, d.grain)}</select>
+    </div>
+    <div class="field">
+      <label for="fRockname">6. Rock name</label>
+      <input type="text" id="fRockname" value="${esc(d.rockname)}" placeholder="e.g. granite">
+      <div class="desc">Always saved in CAPITAL LETTERS regardless of how it is typed.</div>
+    </div>
+
+    <hr class="tick">
+    <div class="field" style="margin-bottom:0;">
+      <label>Constructed description</label>
+      <div class="desc-preview" id="descPreview">${esc(buildBS5930Description()) || '(fill in the fields above)'}</div>
+    </div>
+  </div>`;
+}
+function bindDescription(){
+  const map = {fStrength:'strength', fStructure:'structure', fColour:'colour', fTexture:'texture', fGrain:'grain', fRockname:'rockname'};
+  Object.keys(map).forEach(id=>{
+    const el = document.getElementById(id);
+    const key = map[id];
+    const evt = (el.tagName==='SELECT')?'change':'input';
+    el.addEventListener(evt, ()=>{
+      state.desc[key] = el.value;
+      document.getElementById('descPreview').textContent = buildBS5930Description() || '(fill in the fields above)';
+    });
+  });
+}
+</script>
+</body>
+</html>
